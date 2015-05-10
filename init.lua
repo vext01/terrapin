@@ -3,7 +3,10 @@ conf = require("conf")
 
 gpio.mode(conf.power_led, gpio.OUTPUT)
 gpio.mode(conf.wifi_led, gpio.OUTPUT)
-gpio.mode(conf.connect_led, gpio.OUTPUT)
+gpio.mode(conf.ack_led, gpio.OUTPUT)
+
+-- LED dance
+print("Terrapin starting...")
 
 gpio.write(conf.power_led, gpio.HIGH)
 
