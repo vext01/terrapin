@@ -1,0 +1,28 @@
+conf = {}
+
+-- local network settings
+conf.ssid = "xxx"
+conf.pass = "xxx"
+
+-- mqtt settings
+conf.mqtt_keepalive = 30
+conf.mqtt_user = nil
+conf.mqtt_pass = nil
+conf.mqtt_broker = "192.168.1.5"
+conf.mqtt_port = 1883
+conf.mqtt_qos = 2
+conf.mqtt_retain = 0
+
+-- sensors
+-- Enable PIN -> topic
+conf.sensors = {}
+conf.sensors[4] = "/mcu/light"
+
+conf.read_intvl = 10 -- secs
+
+-- staus led pins
+conf.power_led = 1
+conf.wifi_led = 2
+conf.connect_led = 3
+
+return conf
