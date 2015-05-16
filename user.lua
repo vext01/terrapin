@@ -1,11 +1,15 @@
 conf = require("conf")
-num_acks = 0
 
-function ack(conn)
-	print("ack")
-	num_acks = num_acks + 1
-	if num_acks == conf.num_sensors then
-		again(conn, false)
+function ack(mux_addr)
+	return function(conn)
+		print("conn is ", conn)
+		print(string.format("ack: %d", mux_addr))
+		mux_addr = mux_addr + 1
+		if mux_addr == conf.num_sensors then
+			again(conn, false)
+		else
+			take_reading(conn, mux_addr)
+		end
 	end
 end
 
@@ -26,23 +30,23 @@ function set_mux_addr(mux_addr)
 		local pin = conf.mux_addr_pins[i+1]
 		print(mux_addr, pin, val)
 		gpio.write(pin, val)
-		--if pin == 1 then
-		--	gpio.write(pin, gpio.HIGH)
-		--else
-		--	gpio.write(pin, gpio.LOW)
-		--end
 	end
 end
 
-function rcv(conn)
+function connect(conn)
+	take_reading(conn, 0)
+end
+
+function take_reading(conn, mux_addr)
 	print("mqtt connected")
-	for mux_addr, topic in pairs(conf.sensors) do
+	--for mux_addr, topic in pairs(conf.sensors) do
+		topic = conf.sensors[mux_addr]
 		set_mux_addr(mux_addr)
 		tmr.delay(10000)
 		local val = adc.read(0)
 		print(string.format("mux_addr=%s, topic=%s, val=%d", mux_addr, topic, val))
-		conn:publish(topic, tostring(val), conf.mqtt_qos, conf.mqtt_retain, ack)
-	end
+		conn:publish(topic, tostring(val), conf.mqtt_qos, conf.mqtt_retain, ack(mux_addr))
+	--end
 end
 
 for idx, pin in pairs(conf.mux_addr_pins) do
@@ -53,4 +57,4 @@ end
 print("hi")
 tmr.alarm(0, 10 * 1000, 0, too_long)
 mq = mqtt.Client("clientid", conf.mqtt_keepalive, conf.mqtt_user, conf.mqtt_pass)
-mq:connect(conf.mqtt_broker, conf.mqtt_port, rcv)
+mq:connect(conf.mqtt_broker, conf.mqtt_port, connect)
