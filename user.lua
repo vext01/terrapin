@@ -6,6 +6,8 @@ function ack(mux_addr)
 		print(string.format("ack: %d", mux_addr))
 		mux_addr = mux_addr + 1
 		if mux_addr == conf.num_sensors then
+			print("Success!")
+			dance_led(conf.ack_led)
 			again(conn, false)
 		else
 			take_reading(conn, mux_addr)
@@ -13,8 +15,19 @@ function ack(mux_addr)
 	end
 end
 
+blink_delay = 1000 * 50
+function dance_led(pin)
+	for i = 0, 9, 1 do
+		gpio.write(pin, gpio.LOW)
+		tmr.delay(blink_delay)
+		gpio.write(pin, gpio.HIGH)
+		tmr.delay(blink_delay)
+	end
+end
+
 function too_long()
-	print("Fail")
+	print("FAIL!")
+	dance_led(conf.power_led)
 	again(nil, true)
 end
 
@@ -50,7 +63,6 @@ function take_reading(conn, mux_addr)
 end
 
 for idx, pin in pairs(conf.mux_addr_pins) do
-	print(pin)
 	gpio.mode(pin, gpio.OUTPUT)
 end
 
