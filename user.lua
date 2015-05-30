@@ -2,7 +2,6 @@ conf = require("conf")
 
 function ack(mux_addr)
 	return function(conn)
-		print("conn is ", conn)
 		print(string.format("ack: %d", mux_addr))
 		mux_addr = mux_addr + 1
 		if mux_addr == conf.num_sensors then
@@ -52,14 +51,14 @@ end
 
 function take_reading(conn, mux_addr)
 	print("mqtt connected")
-	--for mux_addr, topic in pairs(conf.sensors) do
-		topic = conf.sensors[mux_addr]
-		set_mux_addr(mux_addr)
-		tmr.delay(10000)
-		local val = adc.read(0)
-		print(string.format("mux_addr=%s, topic=%s, val=%d", mux_addr, topic, val))
-		conn:publish(topic, tostring(val), conf.mqtt_qos, conf.mqtt_retain, ack(mux_addr))
-	--end
+	local topic = conf.sensors[mux_addr]
+	local fn = conf.lambdas[mux_addr]
+	set_mux_addr(mux_addr)
+	tmr.delay(10000)
+	local val = adc.read(0)
+	local val_p = fn(val)
+	print(string.format("mux_addr=%s, topic=%s, val=%d, val_p=%d", mux_addr, topic, val, val_p))
+	conn:publish(topic, tostring(val), conf.mqtt_qos, conf.mqtt_retain, ack(mux_addr))
 end
 
 for idx, pin in pairs(conf.mux_addr_pins) do
@@ -67,6 +66,6 @@ for idx, pin in pairs(conf.mux_addr_pins) do
 end
 
 print("hi")
-tmr.alarm(0, 10 * 1000, 0, too_long)
+tmr.alarm(0, conf.too_long * 1000, 0, too_long)
 mq = mqtt.Client("clientid", conf.mqtt_keepalive, conf.mqtt_user, conf.mqtt_pass)
 mq:connect(conf.mqtt_broker, conf.mqtt_port, connect)
