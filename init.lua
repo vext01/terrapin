@@ -13,6 +13,6 @@ tmr.alarm(1, 1000, 1, function()
     	tmr.stop(1)
     	print("Config done, IP is "..wifi.sta.getip())
         gpio.write(conf.wifi_led, gpio.HIGH)
-	--dofile("user.lua")
+	dofile("user.lua")
     end
  end)

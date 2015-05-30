@@ -53,19 +53,22 @@ function take_reading(conn, mux_addr)
 	print("mqtt connected")
 	local topic = conf.sensors[mux_addr]
 	local fn = conf.lambdas[mux_addr]
+	wifi.sleeptype(wifi.MODEM_SLEEP)
 	set_mux_addr(mux_addr)
 	tmr.delay(10000)
+	local val = adc.read(0) -- discard first reading
+	tmr.delay(10000)
 	local val = adc.read(0)
+	wifi.sleeptype(wifi.NONE_SLEEP)
 	local val_p = fn(val)
 	print(string.format("mux_addr=%s, topic=%s, val=%d, val_p=%d", mux_addr, topic, val, val_p))
-	conn:publish(topic, tostring(val), conf.mqtt_qos, conf.mqtt_retain, ack(mux_addr))
+	conn:publish(topic, tostring(val_p), conf.mqtt_qos, conf.mqtt_retain, ack(mux_addr))
 end
 
 for idx, pin in pairs(conf.mux_addr_pins) do
 	gpio.mode(pin, gpio.OUTPUT)
 end
 
-print("hi")
 tmr.alarm(0, conf.too_long * 1000, 0, too_long)
 mq = mqtt.Client("clientid", conf.mqtt_keepalive, conf.mqtt_user, conf.mqtt_pass)
 mq:connect(conf.mqtt_broker, conf.mqtt_port, connect)
